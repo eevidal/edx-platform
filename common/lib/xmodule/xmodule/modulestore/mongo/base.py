@@ -31,8 +31,10 @@ from xblock.exceptions import InvalidScopeError
 from xblock.fields import Scope, ScopeIds
 
 from xmodule.modulestore import ModuleStoreWriteBase, Location, MONGO_MODULESTORE_TYPE
+from xmodule.modulestore.django import loc_mapper
 from xmodule.modulestore.exceptions import ItemNotFoundError
 from xmodule.modulestore.inheritance import own_metadata, InheritanceMixin, inherit_metadata, InheritanceKeyValueStore
+from xmodule.modulestore.locator import CourseLocator
 from xmodule.modulestore.xml import LocationReader
 from xblock.core import XBlock
 
@@ -877,14 +879,30 @@ class MongoModuleStore(ModuleStoreWriteBase):
         item_locs -= all_reachable
         return list(item_locs)
 
-    def get_courses_for_wiki(self, wiki_slug):
+    def get_courses_for_wiki_id(self, wiki_id):
         """
-        Return the list of courses which use this wiki
-        :param wiki_slug: the wiki id
+        Return the list of courses which use this wiki_id
+        :param wiki_id: the course wiki root slug
         :return: list of course locations
         """
-        courses = self.collection.find({'definition.data.wiki_slug': wiki_slug})
-        return [Location(course['_id']) for course in courses]
+
+        # The wiki_id of a course can either be CourseLocator.package_id or some specific wiki_slug.
+        # First check if there is a course with a matching package_id.
+        try:
+            course_locator = CourseLocator(package_id=wiki_id)
+        except ValueError:
+            pass
+        else:
+            course_location = loc_mapper().translate_locator_to_location(course_locator, get_course=True)
+            if course_location is not None:
+                course = self.get_course(course_location.course_id)
+                if course is not None:
+                    return [course_location]
+
+        # Otherwise try to find courses with matching wiki_slug.
+        courses = self.collection.find({'definition.data.wiki_slug': wiki_id})
+        course_descriptors = [self.get_item(course['_id']) for course in courses]
+        return [descriptor.location for descriptor in course_descriptors if descriptor.use_unique_wiki_id is False]
 
     def _create_new_field_data(self, _category, _location, definition_data, metadata):
         """

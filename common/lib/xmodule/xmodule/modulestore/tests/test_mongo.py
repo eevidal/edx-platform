@@ -6,6 +6,7 @@ from itertools import ifilter
 # pylint: enable=E0611
 import pymongo
 import logging
+import unittest
 from uuid import uuid4
 
 from xblock.fields import Scope
@@ -14,6 +15,7 @@ from xblock.exceptions import InvalidScopeError
 
 from xmodule.tests import DATA_DIR
 from xmodule.modulestore import Location, MONGO_MODULESTORE_TYPE
+from xmodule.modulestore.django import loc_mapper
 from xmodule.modulestore.mongo import MongoModuleStore, MongoKeyValueStore
 from xmodule.modulestore.draft import DraftModuleStore
 from xmodule.modulestore.xml_importer import import_from_xml, perform_xlint
@@ -35,7 +37,7 @@ DEFAULT_CLASS = 'xmodule.raw_module.RawDescriptor'
 RENDER_TEMPLATE = lambda t_n, d, ctx = None, nsp = 'main': ''
 
 
-class TestMongoModuleStore(object):
+class TestMongoModuleStore(unittest.TestCase):
     '''Tests!'''
     # Explicitly list the courses to load (don't want the big one)
     courses = ['toy', 'simple', 'simple_with_draft', 'test_unicode']
@@ -98,6 +100,9 @@ class TestMongoModuleStore(object):
     def setUp(self):
         # make a copy for convenience
         self.connection = TestMongoModuleStore.connection
+
+        for course in self.courses:
+            loc_mapper().translate_location('edX/{0}/2012_Fall'.format(course), Location('i4x', 'edX', course, 'course', '2012_Fall'))
 
     def tearDown(self):
         pass
@@ -273,24 +278,46 @@ class TestMongoModuleStore(object):
             {'displayname': 'hello'}
         )
 
-    def test_get_courses_for_wiki(self):
+    def test_get_courses_for_wiki_id(self):
         """
-        Test the get_courses_for_wiki method
+        Test the get_courses_for_wiki_id method
         """
         for course_id in self.courses:
-            courses = self.store.get_courses_for_wiki(course_id)
-            assert_equals(len(courses), 1)
-            assert_equals(Location('i4x', 'edX', course_id, 'course', '2012_Fall'), courses[0])
-        course_locs = self.store.get_courses_for_wiki('no_such_wiki')
-        assert_equals(len(course_locs), 0)
-        # now set two to have same wiki
-        course = self.store.get_course('edX/toy/2012_Fall')
-        course.wiki_slug = 'simple'
-        self.store.save_xmodule(course)
-        courses = self.store.get_courses_for_wiki('simple')
-        assert_equals(len(courses), 2)
+            course_locations = self.store.get_courses_for_wiki_id(course_id)
+            self.assertEqual(len(course_locations), 1)
+            self.assertEqual(Location('i4x', 'edX', course_id, 'course', '2012_Fall'), course_locations[0])
+
+        course_locs = self.store.get_courses_for_wiki_id('no_such_wiki')
+        self.assertEqual(len(course_locs), 0)
+
+        # now set toy course to share the wiki with simple course
+        toy_course = self.store.get_course('edX/toy/2012_Fall')
+        toy_course.wiki_slug = 'simple'
+        self.store.save_xmodule(toy_course)
+        course_locations = self.store.get_courses_for_wiki_id('simple')
+        self.assertEqual(len(course_locations), 2)
         for course_id in ['toy', 'simple']:
-            assert_in(Location('i4x', 'edX', course_id, 'course', '2012_Fall'), courses)
+            self.assertIn(Location('i4x', 'edX', course_id, 'course', '2012_Fall'), course_locations)
+
+        # configure simple course to use unique wiki id.
+        simple_course = self.store.get_course('edX/simple/2012_Fall')
+        self.assertEqual(simple_course.wiki_id, 'simple')
+        simple_course.use_unique_wiki_id = True
+        self.store.save_xmodule(simple_course)
+        simple_course = self.store.get_course('edX/simple/2012_Fall')
+        self.assertEqual(simple_course.wiki_id, 'edX.simple.2012_Fall')
+
+        # it should no longer be retrievable with its wiki_slug value
+        course_locations = self.store.get_courses_for_wiki_id('simple')
+        self.assertEqual(len(course_locations), 1)
+        self.assertIn(Location('i4x', 'edX', 'toy', 'course', '2012_Fall'), course_locations)
+        self.assertNotIn(Location('i4x', 'edX', 'simple', 'course', '2012_Fall'), course_locations)
+
+        # but should be retrievable with its CourseLocator.package_id value
+        course_locations = self.store.get_courses_for_wiki_id('edX.simple.2012_Fall')
+        self.assertEqual(len(course_locations), 1)
+        self.assertIn(Location('i4x', 'edX', 'simple', 'course', '2012_Fall'), course_locations)
+
 
 class TestMongoKeyValueStore(object):
     """
