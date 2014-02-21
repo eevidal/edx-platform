@@ -371,10 +371,11 @@ def create_new_course(request):
 
     # instantiate the CourseDescriptor and then persist it
     # note: no system to pass
-    if display_name is None:
-        metadata = {}
-    else:
-        metadata = {'display_name': display_name}
+    # CourseDescriptor field use_unique_wiki_id is false by default to maintain backwards compatibility. It is set to
+    # true when creating a course so that new courses get unique wiki_ids.
+    metadata = {'use_unique_wiki_id': 'true'}
+    if display_name is not None:
+        metadata.update({'display_name': display_name})
     modulestore('direct').create_and_save_xmodule(
         dest_location,
         metadata=metadata

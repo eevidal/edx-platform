@@ -1692,8 +1692,12 @@ class ContentStoreTest(ModuleStoreTestCase):
         self.assertEquals(course_module.pdf_textbooks[0]["chapters"][0]["url"], '/c4x/MITx/999/asset/Chapter1.pdf')
         self.assertEquals(course_module.pdf_textbooks[0]["chapters"][1]["url"], '/c4x/MITx/999/asset/Chapter2.pdf')
 
-        # check that URL slug got updated to new course slug
+        # check that wiki_slug got updated to equal the course of the new course_id.
         self.assertEquals(course_module.wiki_slug, '999')
+        # the default value is False.
+        self.assertFalse(course_module.use_unique_wiki_id)
+        # and so wiki_id should equal wiki_slug
+        self.assertEquals(course_module.wiki_id, course_module.wiki_slug)
 
     def test_import_metadata_with_attempts_empty_string(self):
         module_store = modulestore('direct')
@@ -1845,6 +1849,24 @@ class ContentStoreTest(ModuleStoreTestCase):
         resp = self.client.get_html(new_location.url_reverse('course/', ''))
         _test_no_locations(self, resp)
         return resp
+
+    def test_wiki_id(self):
+        """Test that when creating a course use_unique_wiki_id is set to True."""
+
+        module_store = modulestore('direct')
+        target_location = Location(['i4x', 'MITx', '999', 'course', '2013_Spring'])
+        target_course_id = '{0}/{1}/{2}'.format(target_location.org, target_location.course, target_location.name)
+
+        _create_course(self, self.course_data)
+
+        course_module = module_store.get_instance(target_course_id, target_location)
+
+        # even though the default value of this field is False, we set it to true when creating course in studio.
+        self.assertTrue(course_module.use_unique_wiki_id)
+        # wiki_slug should still be equal to course number.
+        self.assertEqual(course_module.wiki_slug, '999')
+        # but wiki_id should be equal to CourseLocator.package_id
+        self.assertEquals(course_module.wiki_id, 'MITx.999.2013_Spring')
 
 
 @override_settings(MODULESTORE=TEST_MODULESTORE)
