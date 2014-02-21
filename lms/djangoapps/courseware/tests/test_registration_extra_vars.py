@@ -18,7 +18,9 @@ class TestExtraRegistrationVariables(TestCase):
     def setUp(self):
         super(TestExtraRegistrationVariables, self).setUp()
         self.url = reverse('create_account')
-        username = 'foo_bar' + uuid.uuid4().hex
+
+        # Getting 23 hex characters because username max length is 30.
+        username = 'foo_bar' + uuid.uuid4().hex[:23]
         self.url_params = {
             'username': username,
             'name': username,

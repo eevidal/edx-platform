@@ -19,8 +19,11 @@ class TestPasswordPolicy(TestCase):
     def setUp(self):
         super(TestPasswordPolicy, self).setUp()
         self.url = reverse('create_account')
+
+        # Getting 23 hex characters because username max length is 30.
+        username = 'foo_bar' + uuid.uuid4().hex[:23]
         self.url_params = {
-            'username': 'foo_bar' + uuid.uuid4().hex,
+            'username': username,
             'email': 'foo' + uuid.uuid4().hex + '@bar.com',
             'name': 'username',
             'terms_of_service': 'true',
