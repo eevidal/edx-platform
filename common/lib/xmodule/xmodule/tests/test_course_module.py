@@ -14,6 +14,7 @@ from django.utils.timezone import UTC
 
 ORG = 'test_org'
 COURSE = 'test_course'
+RUN = 'test_run'
 
 NOW = datetime.strptime('2013-01-01T01:00:00', '%Y-%m-%dT%H:%M:00').replace(tzinfo=UTC())
 
@@ -32,7 +33,7 @@ class DummySystem(ImportSystem):
 
         xmlstore = XMLModuleStore("data_dir", course_dirs=[],
                                   load_error_modules=load_error_modules)
-        course_id = "/".join([ORG, COURSE, 'test_run'])
+        course_id = "/".join([ORG, COURSE, RUN])
         course_dir = "test_dir"
         error_tracker = Mock()
         parent_tracker = Mock()
@@ -63,8 +64,8 @@ def get_dummy_course(start, announcement=None, is_new=None, advertised_start=Non
     end = to_attrb('end', end)
 
     start_xml = '''
-         <course org="{org}" course="{course}" display_organization="{org}_display" display_coursenumber="{course}_display"
-                graceperiod="1 day" url_name="test"
+        <course org="{org}" course="{course}" display_organization="{org}_display" display_coursenumber="{course}_display"
+                graceperiod="1 day" url_name="{run}"
                 start="{start}"
                 {announcement}
                 {is_new}
@@ -73,9 +74,11 @@ def get_dummy_course(start, announcement=None, is_new=None, advertised_start=Non
             <chapter url="hi" url_name="ch" display_name="CH">
                 <html url_name="h" display_name="H">Two houses, ...</html>
             </chapter>
-         </course>
-         '''.format(org=ORG, course=COURSE, start=start, is_new=is_new,
-        announcement=announcement, advertised_start=advertised_start, end=end)
+        </course>
+        '''.format(
+                org=ORG, course=COURSE, run=RUN, start=start, is_new=is_new,
+                announcement=announcement, advertised_start=advertised_start, end=end
+    )
 
     return system.process_xml(start_xml)
 
@@ -201,4 +204,27 @@ class IsNewCourseTestCase(unittest.TestCase):
 class DiscussionTopicsTestCase(unittest.TestCase):
     def test_default_discussion_topics(self):
         d = get_dummy_course('2012-12-02T12:00')
-        self.assertEqual({'General': {'id': 'i4x-test_org-test_course-course-test'}}, d.discussion_topics)
+        self.assertEqual({'General': {'id': 'i4x-test_org-test_course-course-test_run'}}, d.discussion_topics)
+
+
+class WikiIdTestCase(unittest.TestCase):
+    """
+    Test the wiki_id property.
+    """
+
+    def test_wiki_id(self):
+        """
+        Test the wiki_id property.
+
+        To maintain backwards compatibility the default value of use_unique_wiki_id field is False. However when
+        creating a new course in studio this is set to True. When it is false wiki_id returns wiki_slug. Otherwise
+        wiki_id returns the CourseLocator.package_id.
+        """
+        course = get_dummy_course('2012-12-02T12:00')
+        self.assertFalse(course.use_unique_wiki_id)
+        self.assertEqual(course.wiki_slug, COURSE)
+        self.assertEqual(course.wiki_id, COURSE)
+
+        course.use_unique_wiki_id = True
+        self.assertEqual(course.wiki_slug, COURSE)
+        self.assertEqual(course.wiki_id, "{0}.{1}.{2}".format(ORG, COURSE, RUN))
