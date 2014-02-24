@@ -14,7 +14,6 @@ This chapter describes the tools you use to build an edX course, and how to crea
 * :ref:`Use Studio on Edge`
 * :ref:`Create Your First Course`
 * :ref:`View Your Course on Edge`
-* :ref:`What is edX.org?`
 * :ref:`Register Your Course on edX.org`
 
 If you are using an instance of Open edX, some specifics in this chapter may not apply.

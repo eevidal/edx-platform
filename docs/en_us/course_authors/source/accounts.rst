@@ -6,17 +6,19 @@ Getting Started with edX
 
 The following sections provide an introduction to edX and instructions for getting started on edX websites:
 
-*
-*
-*
+* :ref:`Get Started on edX.org`
+* :ref:`Get Started on Edge`
+* :ref:`Reset Your Password`
 
-This information is intended for course staff. You may want to include the details about the registration process and password policies in your communications with your prospective students.ß
+This information is intended for course staff. You may want to include the details about the registration process and password policies in your communications with your prospective students. 
 
-.. _What is edX.org?:
+Also see :ref:`enroll_student` for information about enrolling students in a course, and for an example of the email students receive.
 
-*******************
-What is edX.org?
-*******************
+.. _Get Started on edX.org:
+
+************************
+Get Started on edX.org
+************************
 
 edX.org_ is the site where edX hosts MOOCs, or Massive Open Online Courses, that are created with our institutional partners. These courses are open to students from around the world.
 
@@ -65,11 +67,11 @@ Click the link to complete the activation.  You go to the following page:
 
 You can now register for courses.
 
-.. _What is Edge?: 
+.. _Get Started on Edge: 
 
-******************
-What is Edge?
-******************
+********************
+Get Started on Edge
+********************
 
 EdX Edge_ is the site where edX partners can create courses with Studio, then test courses in the edX Learning Management System.
 
@@ -89,10 +91,10 @@ Courses on Edge are not published on edX.org.
 
 
    
-.. _Get Started on Edge:
+.. _Register on Edge:
          
 ====================
-Get Started on Edge
+Register on Edge
 ====================
 
 Go to https://edge.edx.org, click **Register**, and fill out required information to create your account.
@@ -111,7 +113,8 @@ Enter your account information as prompted. You must check **I agree to the Term
 After you submit the registration, you receive an activation email at the account you registered. The email content is::
 
  Thank you for signing up for edX! 
- To activate your account, please copy and paste this address into your web browser's address bar:
+ To activate your account, please copy and paste this 
+ address into your web browser's address bar:
 
  https://edge.edx.org/activate/2c228e24550d49ab80f25cbc5d5ca56c
 
@@ -139,8 +142,8 @@ and a self-paced walk through of planning, building, and running your own online
 
 .. _edX101: https://edge.edx.org/courses/edX/edX101/How_to_Create_an_edX_Course/about
 
-.. _Register on edX.org:
 
+.. _Reset Your Password:
 
 *******************
 Reset Your Password
@@ -153,7 +156,7 @@ You reset your password on edX.org_ and Edge_ through the same process:
   .. image:: Images/dashboard-password-reset.png
    :alt: Image with the Reset Password link highlighted
 
-2. A dialog box opens confirming that an email has been sent to your address.
+2. A dialog box opens confirming that a message has been sent to your email address.
  
   .. image:: Images/password-email-dialog.png
    :alt: Image with the Reset Password link highlighted
