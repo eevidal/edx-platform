@@ -18,9 +18,9 @@ FORUM_ROLE_STUDENT = ugettext_noop('Student')
 
 
 @receiver(post_save, sender=CourseEnrollment)
-def assign_student_role(sender, instance, **kwargs):
+def assign_default_role_on_enrollment(sender, instance, **kwargs):
     """
-    Assign forum role 'Student'
+    Assign forum default role 'Student'
     """
     # The code below would remove all forum Roles from a user when they unenroll
     # from a course. Concerns were raised that it should apply only to students,
