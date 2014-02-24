@@ -1414,17 +1414,14 @@ class ContentStoreTest(ModuleStoreTestCase):
         course_id = _get_course_id(test_course_data)
 
         # test that a user gets his enrollment and its 'student' role as default on creating a course
-        self.assertEqual(CourseEnrollment.enrollment_counts(course_id).get('total'), 1)
         self.assertTrue(CourseEnrollment.is_enrolled(self.user, course_id))
-        self.assertEqual(self.user.roles.count(), 1)
-        self.assertEqual(self.user.roles.all()[0].name, 'Student')
+        self.assertTrue(self.user.roles.filter(name="Student", course_id=course_id))  # pylint: disable=no-member
 
         delete_course_and_groups(course_id, commit=True)
         # check that user's enrollment for this course is not deleted
-        self.assertEqual(CourseEnrollment.enrollment_counts(course_id).get('total'), 1)
         self.assertTrue(CourseEnrollment.is_enrolled(self.user, course_id))
-        # check that user has role for this course even after deleting it
-        self.assertEqual(self.user.roles.count(), 1)
+        # check that user has form role "Student" for this course even after deleting it
+        self.assertTrue(self.user.roles.filter(name="Student", course_id=course_id))  # pylint: disable=no-member
 
     def test_create_course_duplicate_course(self):
         """Test new course creation - error path"""

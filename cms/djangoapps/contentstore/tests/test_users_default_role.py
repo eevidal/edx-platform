@@ -12,7 +12,7 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from student.models import CourseEnrollment
 
 
-class TestCourseListing(ModuleStoreTestCase):
+class TestUsersDefaultRole(ModuleStoreTestCase):
     """
     Unit tests for checking enrollment and default forum role "Student" of a logged in user
     """
@@ -20,7 +20,7 @@ class TestCourseListing(ModuleStoreTestCase):
         """
         Add a user and a course
         """
-        super(TestCourseListing, self).setUp()
+        super(TestUsersDefaultRole, self).setUp()
         # create and log in a staff user.
         self.user = UserFactory(is_staff=True)  # pylint: disable=no-member
         self.client = AjaxEnabledTestClient()
@@ -53,16 +53,15 @@ class TestCourseListing(ModuleStoreTestCase):
         Reverse the setup
         """
         self.client.logout()
-        super(TestCourseListing, self).tearDown()
+        super(TestUsersDefaultRole, self).tearDown()
 
     def test_user_forum_default_role_on_course_deletion(self):
         """
         Test that a user enrolls and gets "Student" forum role for that course which he creates and remains
-        enrolled even the course is deleted and keeps its "Student" forum role fot that course
+        enrolled even the course is deleted and keeps its "Student" forum role for that course
         """
         course_id = self.course_location.course_id
         # check that user has enrollment for this course
-        self.assertEqual(CourseEnrollment.enrollment_counts(course_id).get('total'), 1)
         self.assertTrue(CourseEnrollment.is_enrolled(self.user, course_id))
 
         # check that user has his default "Student" forum role for this course
@@ -71,7 +70,6 @@ class TestCourseListing(ModuleStoreTestCase):
         delete_course_and_groups(course_id, commit=True)
 
         # check that user's enrollment for this course is not deleted
-        self.assertEqual(CourseEnrollment.enrollment_counts(course_id).get('total'), 1)
         self.assertTrue(CourseEnrollment.is_enrolled(self.user, course_id))
 
         # check that user has forum role for this course even after deleting it
@@ -92,8 +90,7 @@ class TestCourseListing(ModuleStoreTestCase):
         resp = self._create_course_with_given_location(self.course_location)
         self.assertEqual(resp.status_code, 200)
 
-        # check that user has his default "Student" forum role again for this course
-        self.assertEqual(CourseEnrollment.enrollment_counts(course_id).get('total'), 1)
+        # check that user has his enrollment for this course
         self.assertTrue(CourseEnrollment.is_enrolled(self.user, course_id))
 
         # check that user has his default "Student" forum role for this course
@@ -125,5 +122,4 @@ class TestCourseListing(ModuleStoreTestCase):
         # Disabled due to case-sensitive test db (sqlite3)
         # # check that there user has only one "Student" forum role (with new updated course_id)
         # self.assertEqual(self.user.roles.filter(name='Student').count(), 1)  # pylint: disable=no-member
-        # # pylint: disable=no-member
         # self.assertEqual(self.user.roles.filter(name='Student')[0].course_id, new_course_location.course_id)
